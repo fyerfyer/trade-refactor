@@ -16,15 +16,6 @@ type OrderItem struct {
 	Quantity    int32   `json:"quantity"`
 }
 
-func NewOrder(customerID uint64, orderItems []OrderItem) *Order {
-	return &Order{
-		CustomerID: customerID,
-		Items:      orderItems,
-		Status:     "unprocessed",
-		CreatedAt:  time.Now(),
-	}
-}
-
 func (o *Order) TotalPrice() float32 {
 	var total float32
 	for _, item := range o.Items {
