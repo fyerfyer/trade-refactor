@@ -9,5 +9,5 @@ import (
 type OrderPort interface {
 	ProcessItems(ctx context.Context, req *order.ProcessItemsRequest) error
 	ProcessOrder(ctx context.Context, req *order.ProcessOrderRequest) error
-	GetUnpaidOrders(ctx context.Context, req *order.GetUnpaidOrdersRequest) (*order.GetUnpaidOrdersRequest, error)
+	GetUnpaidOrders(ctx context.Context, req *order.GetUnpaidOrdersRequest) (*order.GetUnpaidOrdersResponse, error)
 }

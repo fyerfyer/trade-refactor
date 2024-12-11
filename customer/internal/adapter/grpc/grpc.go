@@ -51,7 +51,7 @@ func (a *Adapter) DeactiveCustomer(ctx context.Context, req *pb.DeactivateCustom
 }
 
 func (a *Adapter) ActivateCustomer(ctx context.Context, req *pb.ActivateCustomerRequest) (*pb.ActivateCustomerResponse, error) {
-	err := a.service.ActivateCustomer(ctx, &customer.DeactivateCustomerRequest{
+	err := a.service.ActivateCustomer(ctx, &customer.ActivateCustomerRequest{
 		CustomerName: req.GetCustomerName(),
 	})
 	if err != nil {

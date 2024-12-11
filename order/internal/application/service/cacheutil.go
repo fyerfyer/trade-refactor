@@ -16,11 +16,10 @@ func LookUpOrderInCache(cache cachePort.Cache, id uint64, status string) (bool, 
 			return false, nil
 		}
 		json.Unmarshal(data, &order)
+		return true, order
 	} else {
 		return false, nil
 	}
-
-	return true, order
 }
 
 func GetOrderKey(id uint64, status string) string {

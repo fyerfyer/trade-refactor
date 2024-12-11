@@ -28,6 +28,7 @@ func NewService(repo port.Repository, cache cachePort.Cache, paymentPort port.Pa
 	}
 }
 
+// the cache update process is moved to handlePayment method
 func (s *OrderService) ProcessItems(ctx context.Context, req *order.ProcessItemsRequest) error {
 	var items []domain.OrderItem
 	for _, item := range req.OrderItems {
@@ -45,9 +46,12 @@ func (s *OrderService) ProcessItems(ctx context.Context, req *order.ProcessItems
 		CreatedAt:  time.Now(),
 	}
 
-	err := s.repo.Save(ctx, o)
-	if err != nil {
+	if err := s.repo.Save(ctx, o); err != nil {
 		return e.FAILED_TO_STORE_DB_ERROR
+	}
+
+	if err := s.cache.Set(GetOrderKey(o.ID, o.Status), o, 0); err != nil {
+		return e.FAILED_TO_UPDATE_CACHE_ERROR
 	}
 
 	return s.handlePayment(ctx, o, req.Customer)
@@ -68,9 +72,8 @@ func (s *OrderService) ProcessOrder(ctx context.Context, req *order.ProcessOrder
 			return e.CUSTOMER_NOT_FOUND
 		}
 
-		// update the cache
-		if err = s.cache.Set(GetOrderKey(req.OrderID, "unpaid"), o, 0); err != nil {
-			return e.FAILED_TO_UPDATE_CACHE_ERROR
+		if err := s.repo.Update(ctx, o); err != nil {
+			return e.FAILED_TO_UPDATE_DB_ERROR
 		}
 	}
 
@@ -99,14 +102,6 @@ func (s *OrderService) handlePayment(ctx context.Context, o *domain.Order, c ord
 		}
 
 		return nil
-	}
-
-	o.Status = "unpaid"
-	if err := s.cache.Set(GetOrderKey(o.ID, o.Status), o, 0); err != nil {
-		return e.FAILED_TO_UPDATE_CACHE_ERROR
-	}
-	if err := s.repo.Update(ctx, o); err != nil {
-		return e.FAILED_TO_UPDATE_DB_ERROR
 	}
 
 	return status.New(codes.Internal, err.Error()).Err()

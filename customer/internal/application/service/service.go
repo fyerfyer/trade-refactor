@@ -127,7 +127,7 @@ func (s *CustomerService) DeactivateCustomer(ctx context.Context, req *customer.
 	return nil
 }
 
-func (s *CustomerService) ActivateCustomer(ctx context.Context, req *customer.DeactivateCustomerRequest) error {
+func (s *CustomerService) ActivateCustomer(ctx context.Context, req *customer.ActivateCustomerRequest) error {
 	res, err := s.GetCustomer(ctx, &customer.GetCustomerRequest{
 		CustomerName: req.CustomerName,
 	})

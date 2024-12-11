@@ -6,17 +6,17 @@ import (
 	"net"
 
 	pb "github.com/fyerfyer/trade-dependency/proto/grpc/payment"
-	"github.com/fyerfyer/trade-refactor/payment/internal/application/service"
+	"github.com/fyerfyer/trade-refactor/payment/internal/port"
 	"google.golang.org/grpc"
 )
 
 type Adapter struct {
-	service *service.PaymentService
-	port    int
+	service port.PaymentPort
+	port int
 	pb.UnimplementedPaymentServer
 }
 
-func NewAdapter(service *service.PaymentService, port int) *Adapter {
+func NewAdapter(service port.PaymentPort, port int) *Adapter {
 	return &Adapter{
 		service: service,
 		port:    port,

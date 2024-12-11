@@ -8,16 +8,16 @@ import (
 	"google.golang.org/grpc"
 
 	pb "github.com/fyerfyer/trade-dependency/proto/grpc/order"
-	"github.com/fyerfyer/trade-refactor/order/internal/application/service"
+	"github.com/fyerfyer/trade-refactor/order/internal/port"
 )
 
 type Adapter struct {
-	service *service.OrderService
+	service port.OrderPort
 	port    int
 	pb.UnimplementedOrderServer
 }
 
-func NewAdapter(service *service.OrderService, port int) *Adapter {
+func NewAdapter(service port.OrderPort, port int) *Adapter {
 	return &Adapter{
 		service: service,
 		port:    port,
