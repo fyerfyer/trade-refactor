@@ -25,7 +25,7 @@ func (p *PaymentRepoTestSuite) SetupSuite() {
 	// Define database URL function
 	dbURL := func(host string, port nat.Port) string {
 		return fmt.Sprintf(
-			"root:110119abc@tcp(%s:%s)/orders?charset=utf8mb4&parseTime=True&loc=Local",
+			"root:110119abc@tcp(%s:%s)/payment?charset=utf8&parseTime=True&loc=Local",
 			host, port.Port(),
 		)
 	}
@@ -36,10 +36,10 @@ func (p *PaymentRepoTestSuite) SetupSuite() {
 		ExposedPorts: []string{string(port)},
 		Env: map[string]string{
 			"MYSQL_ROOT_PASSWORD": "110119abc",
-			"MYSQL_DATABASE":      "orders",
+			"MYSQL_DATABASE":      "payment",
 		},
 		WaitingFor: wait.ForSQL(port, "mysql", dbURL).
-			WithStartupTimeout(30 * time.Second).
+			WithStartupTimeout(50 * time.Second).
 			WithPollInterval(500 * time.Millisecond),
 	}
 
@@ -61,14 +61,14 @@ func (p *PaymentRepoTestSuite) SetupSuite() {
 	p.DBSourceURL = dbURL(host, mappedPort)
 }
 
-func (p *PaymentRepoTestSuite) Test_Should_Save_Payment() {
+func (p *PaymentRepoTestSuite) Test_Save_Payment() {
 	gormRepo, err := NewGormRepository(p.DBSourceURL)
 	p.Require().NoError(err, "failed to initialize gorm database")
 	p.Require().NotNil(gormRepo, "repository is nil")
 
 	payment := &domain.Payment{}
 	saveErr := gormRepo.Save(context.Background(), payment)
-	p.NoError(saveErr, "failed to save order")
+	p.NoError(saveErr, "failed to save payment")
 }
 
 func TestPaymentRepoSuite(t *testing.T) {
