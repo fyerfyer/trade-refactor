@@ -1,0 +1,25 @@
+version: "3.9"
+services:
+  mysql:
+    image: "mysql:8.0.30"
+    environment:
+      MYSQL_ROOT_PASSWORD: "pa55word"
+    ports:
+      - "3306:3306"
+    volumes:
+      - "./init.sql:/docker-entrypoint-initdb.d/init.sql" 
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-ppa55word"]  
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  
+  redis: 
+    image: "redis:6.2"
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10

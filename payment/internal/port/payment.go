@@ -7,4 +7,5 @@ import (
 
 type PaymentPort interface {
 	Charge(ctx context.Context, req *payment.ChargeRequest) error
+	GetPayment(ctx context.Context, req *payment.GetPaymentRequest) (*payment.GetPaymentResponse, error)
 }

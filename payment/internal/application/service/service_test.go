@@ -10,6 +10,8 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+// mock test need repairing
+// haven't included cache
 func TestCharge_Success(t *testing.T) {
 	mockRepo := new(Repository)
 	mockCache := new(Cache)

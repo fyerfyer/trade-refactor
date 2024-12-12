@@ -83,9 +83,9 @@ func (r *GormRepository) GetUnpaidOrders(ctx context.Context, customerID uint64)
 	return convertDBIntoDomainOrders(orders), nil
 }
 
-func (r *GormRepository) GetUnpaidOrder(ctx context.Context, orderID uint64) (*domain.Order, error) {
+func (r *GormRepository) Get(ctx context.Context, orderID uint64, status string) (*domain.Order, error) {
 	var o Order
-	err := r.db.WithContext(ctx).Where("id = ? AND status = ?", orderID, "unpaid").
+	err := r.db.WithContext(ctx).Where("id = ? AND status = ?", orderID, status).
 		First(&o).
 		Error
 
@@ -95,6 +95,10 @@ func (r *GormRepository) GetUnpaidOrder(ctx context.Context, orderID uint64) (*d
 
 	domainOrder := convertDBIntoDomainOrder(o)
 	return &domainOrder, nil
+}
+
+func (r *GormRepository) GetUnpaidOrder(ctx context.Context, orderID uint64) (*domain.Order, error) {
+	return r.Get(ctx, orderID, "unpaid")
 }
 
 func convertDomainOrderIntoDB(order domain.Order) Order {

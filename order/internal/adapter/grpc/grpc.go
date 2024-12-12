@@ -47,3 +47,32 @@ func (a *Adapter) ProcessOrder(ctx context.Context, req *pb.ProcessOrderRequest)
 
 	return &pb.ProcessOrderResponse{Message: "successfully process order"}, nil
 }
+
+func (a *Adapter) GetOrder(ctx context.Context, req *pb.GetOrderRequest) (*pb.GetOrderResponse, error) {
+	res, err := a.service.GetOrder(ctx, &order.GetOrderRequest{
+		CustomerID: req.GetCustomerId(),
+		Status:     req.GetStatus(),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	var items []*pb.OrderItem
+	for _, item := range res.Order.Items {
+		items = append(items, &pb.OrderItem{
+			ProductCode: item.ProductCode,
+			UnitPrice:   item.UnitPrice,
+			Quantity:    item.Quantity,
+		})
+	}
+
+	return &pb.GetOrderResponse{
+		Order: &pb.OrderEntity{
+			OrderId:    res.Order.OrderID,
+			OrderItems: items,
+			Status:     res.Order.Status,
+			CreatedAt:  uint64(res.Order.CreatedAt.Unix()), // to do: change pb time format into int64
+		},
+	}, nil
+}

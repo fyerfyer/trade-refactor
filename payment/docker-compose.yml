@@ -1,0 +1,41 @@
+version: "3.9"
+service:
+  mysql:
+    image: "mysql:8.0.30"
+    environment:
+      MYSQL_ROOT_PASSWORD: "pa55word"
+    ports:
+      - "3306:3306"
+    volumes:
+      - "./init.sql:/docker-entrypoint-initdb.d/init.sql" 
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-ppa55word"] 
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  
+  redis: 
+    image: "redis:6.2"
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    
+  payment: 
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    build: ../../payment/
+    environment:
+      APPLICATION_PORT: 8081
+      REDIS_ADDR: "redis:6379"
+      ENV: "development"
+      DATA_SOURCE_URL: "root:pa55word@tcp(mysql:3306)/payments?charset=utf8&parseTime=True&loc=Local"
+    ports:
+    - "8081:8081"
+      

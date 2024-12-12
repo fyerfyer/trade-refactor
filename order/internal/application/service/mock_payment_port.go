@@ -69,6 +69,65 @@ func (_c *PaymentPort_Charge_Call) RunAndReturn(run func(context.Context, *payme
 	return _c
 }
 
+// GetPayment provides a mock function with given fields: ctx, req
+func (_m *PaymentPort) GetPayment(ctx context.Context, req *payment.GetPaymentRequest) (*payment.GetPaymentResponse, error) {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPayment")
+	}
+
+	var r0 *payment.GetPaymentResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *payment.GetPaymentRequest) (*payment.GetPaymentResponse, error)); ok {
+		return rf(ctx, req)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *payment.GetPaymentRequest) *payment.GetPaymentResponse); ok {
+		r0 = rf(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*payment.GetPaymentResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *payment.GetPaymentRequest) error); ok {
+		r1 = rf(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// PaymentPort_GetPayment_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPayment'
+type PaymentPort_GetPayment_Call struct {
+	*mock.Call
+}
+
+// GetPayment is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *payment.GetPaymentRequest
+func (_e *PaymentPort_Expecter) GetPayment(ctx interface{}, req interface{}) *PaymentPort_GetPayment_Call {
+	return &PaymentPort_GetPayment_Call{Call: _e.mock.On("GetPayment", ctx, req)}
+}
+
+func (_c *PaymentPort_GetPayment_Call) Run(run func(ctx context.Context, req *payment.GetPaymentRequest)) *PaymentPort_GetPayment_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*payment.GetPaymentRequest))
+	})
+	return _c
+}
+
+func (_c *PaymentPort_GetPayment_Call) Return(_a0 *payment.GetPaymentResponse, _a1 error) *PaymentPort_GetPayment_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *PaymentPort_GetPayment_Call) RunAndReturn(run func(context.Context, *payment.GetPaymentRequest) (*payment.GetPaymentResponse, error)) *PaymentPort_GetPayment_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewPaymentPort creates a new instance of PaymentPort. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewPaymentPort(t interface {

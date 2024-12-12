@@ -41,3 +41,13 @@ func (r *GormRepository) Save(ctx context.Context, payment *domain.Payment) erro
 
 	return r.db.WithContext(ctx).Create(&dbPayment).Error
 }
+
+func (r *GormRepository) Get(ctx context.Context, customerID uint64) (*domain.Payment, error) {
+	var payment domain.Payment
+	err := r.db.WithContext(ctx).
+		Where("customer_id = ?", customerID).
+		First(&payment).
+		Error
+
+	return &payment, err
+}

@@ -45,3 +45,31 @@ func (s *PaymentService) Charge(ctx context.Context, req *payment.ChargeRequest)
 
 	return nil
 }
+
+func (s *PaymentService) GetPayment(ctx context.Context, req *payment.GetPaymentRequest) (*payment.GetPaymentResponse, error) {
+	var (
+		p       *domain.Payment
+		success bool
+		err     error
+	)
+
+	if success, p = LookUpPaymentInCache(s.cache, req.CustomerID); !success {
+		if p, err = s.repo.Get(ctx, req.CustomerID); err != nil {
+			return nil, e.PAYMENT_NOT_FOUND
+		}
+
+		if err := s.cache.Set(GetPaymentKey(req.CustomerID), p, 0); err != nil {
+			return nil, e.FAILED_TO_UPDATE_CACHE_ERROR
+		}
+	}
+
+	return &payment.GetPaymentResponse{
+		Payment: payment.PaymentDTO{
+			OrderID:    p.OrderID,
+			CustomerID: p.CustomerID,
+			TotalPrice: p.TotalPrice,
+			Status:     p.Status,
+			Message:    p.Message,
+		},
+	}, nil
+}

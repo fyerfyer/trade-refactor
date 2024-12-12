@@ -22,6 +22,65 @@ func (_m *Repository) EXPECT() *Repository_Expecter {
 	return &Repository_Expecter{mock: &_m.Mock}
 }
 
+// Get provides a mock function with given fields: ctx, customerID
+func (_m *Repository) Get(ctx context.Context, customerID uint64) (*domain.Payment, error) {
+	ret := _m.Called(ctx, customerID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Get")
+	}
+
+	var r0 *domain.Payment
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uint64) (*domain.Payment, error)); ok {
+		return rf(ctx, customerID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uint64) *domain.Payment); ok {
+		r0 = rf(ctx, customerID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.Payment)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uint64) error); ok {
+		r1 = rf(ctx, customerID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Repository_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
+type Repository_Get_Call struct {
+	*mock.Call
+}
+
+// Get is a helper method to define mock.On call
+//   - ctx context.Context
+//   - customerID uint64
+func (_e *Repository_Expecter) Get(ctx interface{}, customerID interface{}) *Repository_Get_Call {
+	return &Repository_Get_Call{Call: _e.mock.On("Get", ctx, customerID)}
+}
+
+func (_c *Repository_Get_Call) Run(run func(ctx context.Context, customerID uint64)) *Repository_Get_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uint64))
+	})
+	return _c
+}
+
+func (_c *Repository_Get_Call) Return(_a0 *domain.Payment, _a1 error) *Repository_Get_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Repository_Get_Call) RunAndReturn(run func(context.Context, uint64) (*domain.Payment, error)) *Repository_Get_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Save provides a mock function with given fields: ctx, payment
 func (_m *Repository) Save(ctx context.Context, payment *domain.Payment) error {
 	ret := _m.Called(ctx, payment)

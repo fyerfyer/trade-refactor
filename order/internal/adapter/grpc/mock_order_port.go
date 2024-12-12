@@ -22,6 +22,65 @@ func (_m *OrderPort) EXPECT() *OrderPort_Expecter {
 	return &OrderPort_Expecter{mock: &_m.Mock}
 }
 
+// GetOrder provides a mock function with given fields: ctx, req
+func (_m *OrderPort) GetOrder(ctx context.Context, req *order.GetOrderRequest) (*order.GetOrderResponse, error) {
+	ret := _m.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetOrder")
+	}
+
+	var r0 *order.GetOrderResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *order.GetOrderRequest) (*order.GetOrderResponse, error)); ok {
+		return rf(ctx, req)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *order.GetOrderRequest) *order.GetOrderResponse); ok {
+		r0 = rf(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*order.GetOrderResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *order.GetOrderRequest) error); ok {
+		r1 = rf(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// OrderPort_GetOrder_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetOrder'
+type OrderPort_GetOrder_Call struct {
+	*mock.Call
+}
+
+// GetOrder is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *order.GetOrderRequest
+func (_e *OrderPort_Expecter) GetOrder(ctx interface{}, req interface{}) *OrderPort_GetOrder_Call {
+	return &OrderPort_GetOrder_Call{Call: _e.mock.On("GetOrder", ctx, req)}
+}
+
+func (_c *OrderPort_GetOrder_Call) Run(run func(ctx context.Context, req *order.GetOrderRequest)) *OrderPort_GetOrder_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*order.GetOrderRequest))
+	})
+	return _c
+}
+
+func (_c *OrderPort_GetOrder_Call) Return(_a0 *order.GetOrderResponse, _a1 error) *OrderPort_GetOrder_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *OrderPort_GetOrder_Call) RunAndReturn(run func(context.Context, *order.GetOrderRequest) (*order.GetOrderResponse, error)) *OrderPort_GetOrder_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetUnpaidOrders provides a mock function with given fields: ctx, req
 func (_m *OrderPort) GetUnpaidOrders(ctx context.Context, req *order.GetUnpaidOrdersRequest) (*order.GetUnpaidOrdersResponse, error) {
 	ret := _m.Called(ctx, req)

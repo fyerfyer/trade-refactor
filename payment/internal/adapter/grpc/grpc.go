@@ -33,3 +33,24 @@ func (a *Adapter) Charge(ctx context.Context, req *pb.ChargeRequest) (*pb.Charge
 		Message: "successfully purchase the payment",
 	}, nil
 }
+
+func (a *Adapter) GetPayment(ctx context.Context, req *pb.GetPaymentRequest) (*pb.GetPaymentResponse, error) {
+	p, err := a.service.GetPayment(ctx,
+		&payment.GetPaymentRequest{
+			CustomerID: req.GetCustomerId(),
+		})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.GetPaymentResponse{
+		Payment: &pb.PaymentEntity{
+			CustomerId: p.Payment.CustomerID,
+			OrderId:    p.Payment.OrderID,
+			Status:     p.Payment.Status,
+			TotalPrice: p.Payment.TotalPrice,
+			Message:    p.Payment.Message,
+		},
+	}, nil
+}

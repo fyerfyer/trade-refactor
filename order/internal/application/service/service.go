@@ -107,6 +107,31 @@ func (s *OrderService) handlePayment(ctx context.Context, o *domain.Order, c ord
 	return status.New(codes.Internal, err.Error()).Err()
 }
 
+func (s *OrderService) GetOrder(ctx context.Context, req *order.GetOrderRequest) (*order.GetOrderResponse, error) {
+	o, err := s.repo.Get(ctx, req.CustomerID, req.Status)
+	if err != nil {
+		return nil, err
+	}
+
+	var items []*order.OrderItemDTO
+	for _, item := range o.Items {
+		items = append(items, &order.OrderItemDTO{
+			ProductCode: item.ProductCode,
+			UnitPrice:   item.UnitPrice,
+			Quantity:    item.Quantity,
+		})
+	}
+
+	return &order.GetOrderResponse{
+		Order: order.OrderEntity{
+			OrderID:   o.ID,
+			Items:     items,
+			Status:    o.Status,
+			CreatedAt: o.CreatedAt,
+		},
+	}, nil
+}
+
 func (s *OrderService) GetUnpaidOrders(ctx context.Context, req *order.GetUnpaidOrdersRequest) (*order.GetUnpaidOrdersResponse, error) {
 	orders, err := s.repo.GetUnpaidOrders(ctx, req.CustomerID)
 	if err != nil {

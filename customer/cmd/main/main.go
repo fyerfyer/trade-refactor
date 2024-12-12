@@ -5,6 +5,7 @@ import (
 	"time"
 
 	redis "github.com/fyerfyer/trade-dependency/pkg/cache"
+	"github.com/fyerfyer/trade-refactor/customer/config"
 	"github.com/fyerfyer/trade-refactor/customer/internal/adapter/grpc"
 	"github.com/fyerfyer/trade-refactor/customer/internal/adapter/order"
 	"github.com/fyerfyer/trade-refactor/customer/internal/adapter/repo"
@@ -12,14 +13,14 @@ import (
 )
 
 func main() {
-	dsn := "root:110119abc@tcp(127.0.0.1:3306)/microservice?charset=utf8&parseTime=true"
+	dsn := config.GetDatabaseDSN()
 	customerRepo, err := repo.NewGormRepository(dsn)
 	if err != nil {
 		log.Fatalf("failed to init order database: %v", err)
 	}
 	log.Println("successfully set up database connection")
 
-	redisClient := redis.NewRedisClient("127.0.0.1:6379", "", 10, 10, 3*time.Minute)
+	redisClient := redis.NewRedisClient(config.GetRedisAddr(), "", 10, 10, 3*time.Minute)
 	log.Println("successfully set up redis connection")
 
 	orderAdapter, err := order.NewOrderAdapter("localhost:50052")
@@ -30,7 +31,7 @@ func main() {
 		redisClient,
 		orderAdapter)
 
-	grpcAdapter := grpc.NewAdapter(customerService, 50053)
+	grpcAdapter := grpc.NewAdapter(customerService, config.GetApplicationPort())
 	log.Println("customer grpc server is running on port 50053...")
 	grpcAdapter.Run()
 }
