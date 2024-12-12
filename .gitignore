@@ -33,3 +33,10 @@ coverage/
 
 # Temporary files
 *.tmp
+
+# docker
+.docker/
+.dockerignore
+docker-compose.override.yml
+Dockerfile.*
+
