@@ -49,5 +49,8 @@ service:
     REDIS_ADDR: "redis:6379"
     ENV: "development"
     DATA_SOURCE_URL: "root:pa55word@tcp(mysql:3306)/orders?charset=utf8&parseTime=True&loc=Local"
-  ports:
-    - "8082:8082"
+  healthcheck:
+      test: ["CMD", "grpc_health_probe", "-addr=:8082"]
+      interval: 5s
+      timeout: 5s
+      retries: 10

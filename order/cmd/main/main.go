@@ -10,6 +10,9 @@ import (
 	"github.com/fyerfyer/trade-refactor/order/internal/adapter/payment"
 	"github.com/fyerfyer/trade-refactor/order/internal/adapter/repo"
 	"github.com/fyerfyer/trade-refactor/order/internal/application/service"
+	google "google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 func main() {
@@ -20,7 +23,7 @@ func main() {
 	}
 	log.Println("successfully set up database connection")
 
-	paymentAdapter, err := payment.NewPaymentAdapter("payment:8081")
+	paymentAdapter, err := payment.NewPaymentAdapter("localhost:8081")
 	if err != nil {
 		log.Fatalf("failed to set up payment grpc client: %v", err)
 	}
@@ -28,6 +31,12 @@ func main() {
 
 	redisClient := redis.NewRedisClient(config.GetRedisAddr(), "", 10, 10, 3*time.Minute)
 	log.Println("successfully set up redis connection")
+
+	// health check
+	srv := google.NewServer()
+	healthSrv := health.NewServer()
+	healthpb.RegisterHealthServer(srv, healthSrv)
+	healthSrv.SetServingStatus("", healthpb.HealthCheckResponse_SERVING)
 
 	orderService := service.NewService(
 		orderRepo,
