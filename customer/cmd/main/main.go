@@ -24,6 +24,9 @@ func main() {
 	log.Println("successfully set up redis connection")
 
 	orderAdapter, err := order.NewOrderAdapter(config.GetOrderServiceAddr())
+	if err != nil {
+		log.Fatalf("failed to init order adapter: %v", err)
+	}
 	log.Println("successfully dial to order grpc client...")
 
 	customerService := service.NewService(
@@ -32,6 +35,6 @@ func main() {
 		orderAdapter)
 
 	grpcAdapter := grpc.NewAdapter(customerService, config.GetApplicationPort())
-	log.Println("customer grpc server is running on port 50053...")
+	log.Printf("customer grpc server is running on port %v...", config.GetApplicationPort())
 	grpcAdapter.Run()
 }

@@ -136,3 +136,14 @@ func (a *Adapter) GetUnpaidOrders(ctx context.Context, req *pb.GetUnpaidOrdersRe
 		UnpaidOrders: pbOrders,
 	}, nil
 }
+
+func (a *Adapter) StoreBalance(ctx context.Context, req *pb.StoreBalanceRequest) (*pb.StoreBalanceResponse, error) {
+	err := a.service.StoreBalance(ctx, &customer.StoreBalanceRequest{
+		CustomerName: req.GetCustomerName(),
+		Balance:      req.GetBalance(),
+	})
+
+	return &pb.StoreBalanceResponse{
+		Message: err.Error(),
+	}, err
+}

@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestProcessItems_Success(t *testing.T) {
+func TestProcessItemsSuccess(t *testing.T) {
 	mockRepo := new(Repository)
 	mockCache := new(Cache)
 	mockPayment := new(PaymentPort)
@@ -67,7 +67,7 @@ func TestProcessItems_Success(t *testing.T) {
 	mockPayment.AssertExpectations(t)
 }
 
-func TestProcessItems_Failure(t *testing.T) {
+func TestProcessItemsFailure(t *testing.T) {
 	mockRepo := new(Repository)
 	mockCache := new(Cache)
 	mockPayment := new(PaymentPort)
@@ -118,7 +118,7 @@ func TestProcessItems_Failure(t *testing.T) {
 	mockPayment.AssertExpectations(t)
 }
 
-func TestProcessOrder_Success(t *testing.T) {
+func TestProcessOrderSuccess(t *testing.T) {
 	mockRepo := new(Repository)
 	mockCache := new(Cache)
 	mockPayment := new(PaymentPort)

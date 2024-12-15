@@ -12,7 +12,7 @@ import (
 	pb "github.com/fyerfyer/trade-dependency/proto/grpc/order"
 )
 
-func TestProcessItems_Success(t *testing.T) {
+func TestProcessItemsSuccess(t *testing.T) {
 	mockOrder := new(OrderPort)
 	adapter := NewAdapter(mockOrder, 50052)
 
@@ -65,7 +65,7 @@ func TestProcessItems_Success(t *testing.T) {
 	mockOrder.AssertExpectations(t)
 }
 
-func TestProcessItems_Error(t *testing.T) {
+func TestProcessItemsError(t *testing.T) {
 	mockOrder := new(OrderPort)
 	adapter := NewAdapter(mockOrder, 50052)
 

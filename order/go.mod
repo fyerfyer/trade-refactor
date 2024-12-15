@@ -4,9 +4,9 @@ go 1.23.1
 
 require (
 	github.com/docker/go-connections v0.5.0
-	github.com/fyerfyer/trade-dependency/dto v0.0.17
+	github.com/fyerfyer/trade-dependency/dto v0.0.19
 	github.com/fyerfyer/trade-dependency/pkg/cache v0.0.3
-	github.com/fyerfyer/trade-dependency/proto/grpc/order v0.0.9
+	github.com/fyerfyer/trade-dependency/proto/grpc/order v0.0.12
 	github.com/stretchr/testify v1.9.0
 	github.com/testcontainers/testcontainers-go v0.34.0
 	golang.org/x/net v0.29.0

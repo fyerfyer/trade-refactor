@@ -57,7 +57,7 @@ func (o *OrderRepoTestSuite) SetupSuite() {
 	o.DBSourceURL = dbURL(host, mappedPort)
 }
 
-func (o *OrderRepoTestSuite) Test_Save_Order() {
+func (o *OrderRepoTestSuite) TestSaveOrder() {
 	gormRepo, err := NewGormRepository(o.DBSourceURL)
 	o.Require().NoError(err, "failed to initialize gorm database")
 	o.Require().NotNil(gormRepo, "repository is nil")
@@ -67,7 +67,7 @@ func (o *OrderRepoTestSuite) Test_Save_Order() {
 	o.NoError(saveErr, "failed to save order")
 }
 
-func (o *OrderRepoTestSuite) Test_Update_Order() {
+func (o *OrderRepoTestSuite) TestUpdateOrder() {
 	gormRepo, err := NewGormRepository(o.DBSourceURL)
 	o.Require().NoError(err, "failed to initialize gorm database")
 	o.Require().NotNil(gormRepo, "repository is nil")
@@ -94,7 +94,7 @@ func (o *OrderRepoTestSuite) Test_Update_Order() {
 	o.Equal("unpaid", updatedOrder.Status, "order status was not updated correctly")
 }
 
-func (o *OrderRepoTestSuite) Test_Delete_Order() {
+func (o *OrderRepoTestSuite) TestDeleteOrder() {
 	gormRepo, err := NewGormRepository(o.DBSourceURL)
 	o.Require().NoError(err, "failed to initialize gorm database")
 	o.Require().NotNil(gormRepo, "repository is nil")
@@ -117,7 +117,7 @@ func (o *OrderRepoTestSuite) Test_Delete_Order() {
 	o.Error(getErr, "order was not deleted correctly")
 }
 
-func (o *OrderRepoTestSuite) Test_Get_Unpaid_Orders() {
+func (o *OrderRepoTestSuite) TestGetUnpaidOrders() {
 	gormRepo, err := NewGormRepository(o.DBSourceURL)
 	o.Require().NoError(err, "failed to initialize gorm database")
 	o.Require().NotNil(gormRepo, "repository is nil")
@@ -149,7 +149,7 @@ func (o *OrderRepoTestSuite) Test_Get_Unpaid_Orders() {
 	o.Equal(len(resultOrders), 2, "incorrect number of unpaid orders")
 }
 
-func (o *OrderRepoTestSuite) Test_Get_Unpaid_Order() {
+func (o *OrderRepoTestSuite) TestGetUnpaidOrder() {
 	gormRepo, err := NewGormRepository(o.DBSourceURL)
 	o.Require().NoError(err, "failed to initialize gorm database")
 	o.Require().NotNil(gormRepo, "repository is nil")
@@ -166,6 +166,28 @@ func (o *OrderRepoTestSuite) Test_Get_Unpaid_Order() {
 	o.Require().NoError(saveErr, "failed to save order")
 
 	retrievedOrder, getErr := gormRepo.GetUnpaidOrder(context.Background(), order.ID)
+	o.NoError(getErr, "failed to retrieve unpaid order")
+	o.Equal(order.ID, retrievedOrder.ID, "incorrect order ID")
+	o.Equal(order.Status, retrievedOrder.Status, "incorrect order status")
+}
+
+func (o *OrderRepoTestSuite) TestGetOrder() {
+	gormRepo, err := NewGormRepository(o.DBSourceURL)
+	o.Require().NoError(err, "failed to initialize gorm database")
+	o.Require().NotNil(gormRepo, "repository is nil")
+
+	order := &domain.Order{
+		CustomerID: 12345,
+		Status:     "success",
+		Items: []domain.OrderItem{
+			{ProductCode: "P001", UnitPrice: 10.0, Quantity: 2},
+		},
+	}
+
+	saveErr := gormRepo.Save(context.Background(), order)
+	o.Require().NoError(saveErr, "failed to save order")
+
+	retrievedOrder, getErr := gormRepo.Get(context.Background(), order.ID)
 	o.NoError(getErr, "failed to retrieve unpaid order")
 	o.Equal(order.ID, retrievedOrder.ID, "incorrect order ID")
 	o.Equal(order.Status, retrievedOrder.Status, "incorrect order status")

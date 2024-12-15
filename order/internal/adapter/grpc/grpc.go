@@ -50,8 +50,7 @@ func (a *Adapter) ProcessOrder(ctx context.Context, req *pb.ProcessOrderRequest)
 
 func (a *Adapter) GetOrder(ctx context.Context, req *pb.GetOrderRequest) (*pb.GetOrderResponse, error) {
 	res, err := a.service.GetOrder(ctx, &order.GetOrderRequest{
-		CustomerID: req.GetCustomerId(),
-		Status:     req.GetStatus(),
+		OrderID: req.GetOrderId(),
 	})
 
 	if err != nil {
@@ -72,7 +71,7 @@ func (a *Adapter) GetOrder(ctx context.Context, req *pb.GetOrderRequest) (*pb.Ge
 			OrderId:    res.Order.OrderID,
 			OrderItems: items,
 			Status:     res.Order.Status,
-			CreatedAt:  uint64(res.Order.CreatedAt.Unix()), // to do: change pb time format into int64
+			CreatedAt:  res.Order.CreatedAt.Unix(), // to do: change pb time format into int64
 		},
 	}, nil
 }

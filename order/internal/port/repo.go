@@ -10,7 +10,7 @@ type Repository interface {
 	Save(ctx context.Context, order *domain.Order) error
 	Update(ctx context.Context, order *domain.Order) error
 	Delete(ctx context.Context, orderID uint64) error
-	Get(ctx context.Context, orderID uint64, status string) (*domain.Order, error)
+	Get(ctx context.Context, orderID uint64) (*domain.Order, error)
 	GetUnpaidOrders(ctx context.Context, customerID uint64) ([]domain.Order, error)
 	GetUnpaidOrder(ctx context.Context, orderID uint64) (*domain.Order, error)
 }

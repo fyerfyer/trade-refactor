@@ -61,7 +61,7 @@ func (c *CustomerRepoTestSuite) SetupSuite() {
 	c.DBSourceURL = dbURL(host, mappedPort)
 }
 
-func (c *CustomerRepoTestSuite) Test_Save_Customer() {
+func (c *CustomerRepoTestSuite) TestSaveCustomer() {
 	gormRepo, err := NewGormRepository(c.DBSourceURL)
 	c.Require().NoError(err, "failed to initialize gorm database")
 	c.Require().NotNil(gormRepo, "repository is nil")
@@ -71,7 +71,7 @@ func (c *CustomerRepoTestSuite) Test_Save_Customer() {
 	c.NoError(saveErr, "failed to save customer")
 }
 
-func (c *CustomerRepoTestSuite) Test_Get_Customer_By_Name() {
+func (c *CustomerRepoTestSuite) TestGetCustomerByName() {
 	gormRepo, err := NewGormRepository(c.DBSourceURL)
 	c.Require().NoError(err, "failed to initialize gorm database")
 	c.Require().NotNil(gormRepo, "repository is nil")
@@ -92,7 +92,7 @@ func (c *CustomerRepoTestSuite) Test_Get_Customer_By_Name() {
 	c.Equal(customer.Balance, retrievedCustomer.Balance, "customer balance does not match")
 }
 
-func (c *CustomerRepoTestSuite) Test_Update_Customer() {
+func (c *CustomerRepoTestSuite) TestUpdateCustomer() {
 	gormRepo, err := NewGormRepository(c.DBSourceURL)
 	c.Require().NoError(err, "failed to initialize gorm database")
 	c.Require().NotNil(gormRepo, "repository is nil")

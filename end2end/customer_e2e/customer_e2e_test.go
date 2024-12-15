@@ -1,4 +1,4 @@
-package order_e2e
+package customere2e
 
 import (
 	"bytes"
@@ -13,10 +13,10 @@ import (
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc"
 
-	pb "github.com/fyerfyer/trade-dependency/proto/grpc/order"
+	pb "github.com/fyerfyer/trade-dependency/proto/grpc/customer"
 )
 
-type OrderTestSuite struct {
+type CustomerTestSuite struct {
 	suite.Suite
 }
 
@@ -42,23 +42,23 @@ func getContainerIP(containerName string) (string, error) {
 	return ip, nil
 }
 
-func (o *OrderTestSuite) SetupSuite() {
+func (c *CustomerTestSuite) SetupSuite() {
 	if err := runDockerCompose("up", "--build", "-d"); err != nil {
 		log.Fatalf("failed to run docker-compose up: %v", err)
 	}
 }
 
-func (o *OrderTestSuite) TearDownSuite() {
+func (c *CustomerTestSuite) TearDownSuite() {
 	if err := runDockerCompose("down"); err != nil {
 		log.Printf("failed to stop docker-compose: %v", err)
 	}
 }
 
-func (o *OrderTestSuite) Test_Order_Service() {
-	containerIP, err := getContainerIP("test_order")
+func (o *CustomerTestSuite) TestSubmitOrderService() {
+	containerIP, err := getContainerIP("test_customer")
 	o.Require().NoError(err, "failed to get container IP")
 
-	connStr := fmt.Sprintf("%s:8082", containerIP)
+	connStr := fmt.Sprintf("%s:8083", containerIP)
 	fmt.Printf("Connecting to: %s\n", connStr)
 
 	// block the connect until success
@@ -66,13 +66,29 @@ func (o *OrderTestSuite) Test_Order_Service() {
 	o.Require().NoError(err, "did not connect")
 	defer conn.Close()
 
-	client := pb.NewOrderClient(conn)
+	client := pb.NewCustomerClient(conn)
 
-	reqOrder := &pb.ProcessItemsRequest{
-		Customer: &pb.CustomerEntity{
-			CustomerId: 1,
-			Balance:    200.0,
-		},
+	// create the customer first
+	createReq, createErr := client.CreateCustomer(context.Background(),
+		&pb.CreateCustomerRequest{
+			CustomerName: "Joe",
+		})
+
+	o.Nil(createErr)
+	o.Equal(createReq.GetCustomerId(), uint64(1))
+	o.Equal(createReq.GetSuccess(), true)
+
+	// set the balance
+	_, setErr := client.StoreBalance(context.Background(),
+		&pb.StoreBalanceRequest{
+			CustomerName: "Joe",
+			Balance:      200,
+		})
+
+	o.Nil(setErr)
+
+	reqOrder := &pb.SubmitOrderRequest{
+		CustomerName: "Joe",
 		OrderItems: []*pb.OrderItem{
 			{
 				ProductCode: "juice",
@@ -87,22 +103,13 @@ func (o *OrderTestSuite) Test_Order_Service() {
 		},
 	}
 
-	resItem, errItem := client.ProcessItems(context.Background(), reqOrder)
-	o.Require().NoError(errItem)
-	o.Require().NotNil(resItem)
-	o.Equal("successfully process items", resItem.Message)
-
-	resOrder, errOrder := client.GetOrder(context.Background(), &pb.GetOrderRequest{
-		CustomerId: 1,
-		Status:     "success",
-	})
-	o.Require().NoError(errOrder)
-	o.Require().NotNil(resOrder)
-	o.Equal(uint64(1), resOrder.GetOrder().OrderId)
-	log.Printf("res: %+v\n", resOrder)
-	log.Printf("items: %v", resOrder.Order.GetOrderItems())
+	resSubmit, errSubmit := client.SubmitOrder(context.Background(), reqOrder)
+	o.Require().NoError(errSubmit)
+	o.Require().NotNil(resSubmit)
+	o.Equal(true, resSubmit.Success)
+	o.Equal("successfully process items", resSubmit.Message)
 }
 
 func TestMain(t *testing.T) {
-	suite.Run(t, new(OrderTestSuite))
+	suite.Run(t, new(CustomerTestSuite))
 }

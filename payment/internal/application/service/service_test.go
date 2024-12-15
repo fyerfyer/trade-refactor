@@ -12,7 +12,7 @@ import (
 
 // mock test need repairing
 // haven't included cache
-func TestCharge_Success(t *testing.T) {
+func TestChargeSuccess(t *testing.T) {
 	mockRepo := new(Repository)
 	mockCache := new(Cache)
 	srv := NewService(mockRepo, mockCache)
@@ -38,7 +38,7 @@ func TestCharge_Success(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-func TestCharge_InsufficientBalance(t *testing.T) {
+func TestChargeInsufficientBalance(t *testing.T) {
 	mockRepo := new(Repository)
 	mockCache := new(Cache)
 	srv := NewService(mockRepo, mockCache)

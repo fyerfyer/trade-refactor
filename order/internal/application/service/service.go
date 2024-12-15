@@ -108,7 +108,7 @@ func (s *OrderService) handlePayment(ctx context.Context, o *domain.Order, c ord
 }
 
 func (s *OrderService) GetOrder(ctx context.Context, req *order.GetOrderRequest) (*order.GetOrderResponse, error) {
-	o, err := s.repo.Get(ctx, req.CustomerID, req.Status)
+	o, err := s.repo.Get(ctx, req.OrderID)
 	if err != nil {
 		return nil, err
 	}

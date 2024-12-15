@@ -61,7 +61,7 @@ func (p *PaymentRepoTestSuite) SetupSuite() {
 	p.DBSourceURL = dbURL(host, mappedPort)
 }
 
-func (p *PaymentRepoTestSuite) Test_Save_Payment() {
+func (p *PaymentRepoTestSuite) TestSavePayment() {
 	gormRepo, err := NewGormRepository(p.DBSourceURL)
 	p.Require().NoError(err, "failed to initialize gorm database")
 	p.Require().NotNil(gormRepo, "repository is nil")
