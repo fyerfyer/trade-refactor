@@ -1,51 +1,93 @@
-version: "3.9"
-service:
+version: '3.9'
+
+services:
   mysql:
     image: "mysql:8.0.30"
+    container_name: "test_mysql" 
     environment:
       MYSQL_ROOT_PASSWORD: "pa55word"
     ports:
       - "3306:3306"
+    networks:
+      - trade-network  
     volumes:
-      - "./init.sql:/docker-entrypoint-initdb.d/init.sql" 
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-ppa55word"]  
       interval: 5s
       timeout: 5s
       retries: 20
-  
+
   redis: 
     image: "redis:6.2"
+    container_name: "test_redis" 
     ports:
       - "6379:6379"
+    networks:
+      - trade-network  
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 10
-  
-  order: 
+
+  payment:
+    image: payment 
+    container_name: "test_payment" 
     depends_on:
       mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
-    build: ../../order/
+    build: ../payment
+    environment:
+      APPLICATION_PORT: 8081
+      REDIS_ADDR: "redis:6379"
+      ENV: "development"
+      DATA_SOURCE_URL: "root:pa55word@tcp(mysql:3306)/payments?charset=utf8&parseTime=True&loc=Local"
+    ports:
+      - "8081:8081"
+    networks:
+      - trade-network  
+
+  order:
+    build: ../order
+    container_name: "test_order" 
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       APPLICATION_PORT: 8082
       REDIS_ADDR: "redis:6379"
       ENV: "development"
       DATA_SOURCE_URL: "root:pa55word@tcp(mysql:3306)/orders?charset=utf8&parseTime=True&loc=Local"
-
-  customer: 
+      PAYMENT_SERVICE_ADDR: "payment:8081"
+    ports:
+      - "8082:8082"
+    networks:
+      - trade-network
+    
+  customer:
+    build: .
+    container_name: "test_customer" 
     depends_on:
       mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
-    build: ../../customer/
-    environment:
+    environment: 
       APPLICATION_PORT: 8083
       REDIS_ADDR: "redis:6379"
       ENV: "development"
       DATA_SOURCE_URL: "root:pa55word@tcp(mysql:3306)/customers?charset=utf8&parseTime=True&loc=Local"
+      ORDER_SERVICE_ADDR: "order:8082"
+    ports:
+      - "8083:8083"
+    networks:
+      - trade-network
+
+networks:
+  trade-network:
+    external: true

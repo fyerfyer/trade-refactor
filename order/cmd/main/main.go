@@ -23,7 +23,7 @@ func main() {
 	}
 	log.Println("successfully set up database connection")
 
-	paymentAdapter, err := payment.NewPaymentAdapter("localhost:8081")
+	paymentAdapter, err := payment.NewPaymentAdapter(config.GetPaymentServiceAddr())
 	if err != nil {
 		log.Fatalf("failed to set up payment grpc client: %v", err)
 	}

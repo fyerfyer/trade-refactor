@@ -1,120 +1,122 @@
-package order_e2e
+package main
 
 import (
 	"context"
+	"fmt"
 	"log"
-	"strings"
+	"os"
+	"os/exec"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
-	tc "github.com/testcontainers/testcontainers-go/modules/compose"
+	"github.com/testcontainers/testcontainers-go"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 
 	pb "github.com/fyerfyer/trade-dependency/proto/grpc/order"
 )
 
 type OrderTestSuite struct {
 	suite.Suite
-	compose *tc.LocalDockerCompose
+	orderHost string
+	orderPort string
+}
+
+func runDockerCompose(args ...string) error {
+	cmd := exec.Command("docker-compose", args...)
+	cmd.Dir = "../resource"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
 
 func (o *OrderTestSuite) SetupSuite() {
-	log.Println("Starting SetupSuite...")
-	composeFilePaths := []string{"../resource/docker-compose.yml"}
-	log.Printf("Using docker-compose file paths: %v\n", composeFilePaths)
-	identifier := strings.ToLower(uuid.New().String())
-	log.Printf("Generated unique identifier: %s\n", identifier)
-	compose := tc.NewLocalDockerCompose(composeFilePaths, identifier)
-	o.compose = compose
-	log.Println("Bringing up Docker compose stack...")
-	err := compose.WithCommand([]string{"up", "-d"}).
-		Invoke().
-		Error
+	if err := runDockerCompose("up", "--build", "-d"); err != nil {
+		log.Fatalf("failed to run docker-compose up: %v", err)
+	}
+
+	containerRequest := testcontainers.ContainerRequest{
+		Name: "test_order",
+	}
+
+	container, err := testcontainers.GenericContainer(
+		context.Background(),
+		testcontainers.GenericContainerRequest{
+			ContainerRequest: containerRequest,
+			Started:          true,
+			Reuse:            true,
+		},
+	)
 	if err != nil {
-		log.Fatalf("Failed to run compose stack: %v\n", err)
+		log.Fatalf("failed to connect to existing container: %v", err)
 	}
-	log.Println("SetupSuite completed successfully.")
-}
 
-func (o *OrderTestSuite) Test_Process_Items() {
-	log.Println("Starting Test_Process_Items...")
-
-	var opts []grpc.DialOption
-	opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	log.Println("Dialing gRPC server at localhost:8082...")
-
-	conn, err := grpc.Dial("localhost:8082", opts...)
+	host, err := container.Host(context.Background())
 	if err != nil {
-		log.Fatalf("failed to connect payment service: %v", err)
+		log.Fatalf("failed to get container host: %v", err)
 	}
-	defer func() {
-		log.Println("Closing gRPC connection...")
-		conn.Close()
-	}()
-
-	orderClient := pb.NewOrderClient(conn)
-	log.Println("Creating order request...")
-
-	clientRes, err := orderClient.ProcessItems(context.Background(),
-		&pb.ProcessItemsRequest{
-			Customer: &pb.CustomerEntity{
-				CustomerId: 1,
-				Balance:    200.0,
-			},
-			OrderItems: []*pb.OrderItem{
-				{
-					ProductCode: "juice",
-					UnitPrice:   50.0,
-					Quantity:    1,
-				},
-				{
-					ProductCode: "bread",
-					UnitPrice:   50.0,
-					Quantity:    2,
-				},
-			},
-		})
-
-	log.Printf("ProcessItems Response: %+v, Error: %v\n", clientRes, err)
-	o.Nil(err, "the items processing should succeed")
-	o.Equal(clientRes.GetMessage(), "successfully process items")
-
-	log.Println("Fetching created order...")
-
-	res, err := orderClient.GetOrder(context.Background(),
-		&pb.GetOrderRequest{CustomerId: 1, Status: "unpaid"})
-	log.Printf("GetOrder Response: %+v, Error: %v\n", res, err)
-
-	o.Nil(err, "should get the order")
-
-	if res != nil && res.Order != nil && len(res.Order.OrderItems) > 0 {
-		orderItem := res.Order.OrderItems[0]
-		log.Printf("Order Item: %+v\n", orderItem)
-		o.Equal(float32(50.0), orderItem.UnitPrice)
-		o.Equal(int32(1), orderItem.Quantity)
-		o.Equal("juice", orderItem.ProductCode)
-	} else {
-		log.Println("Order items list is empty or nil")
+	port, err := container.MappedPort(context.Background(), "8082")
+	if err != nil {
+		log.Fatalf("failed to get container port: %v", err)
 	}
 
-	log.Println("Test_Process_Items completed.")
+	o.orderHost = host
+	o.orderPort = port.Port()
 }
 
 func (o *OrderTestSuite) TearDownSuite() {
-	log.Println("Tearing down Docker compose stack...")
-	err := o.compose.
-		WithCommand([]string{"down"}).
-		Invoke().
-		Error
-
-	if err != nil {
-		log.Fatalf("failed to tear down docker compose: %v", err)
+	if err := runDockerCompose("down"); err != nil {
+		log.Printf("failed to stop docker-compose: %v", err)
 	}
-	log.Println("Docker compose stack torn down successfully.")
 }
 
-func TestOrderTestSuite(t *testing.T) {
+func (o *OrderTestSuite) TestOrderService() {
+	connStr := fmt.Sprintf("%s:%s", o.orderHost, o.orderPort)
+	fmt.Printf("Connecting to: %s\n", connStr)
+
+	conn, err := grpc.Dial(connStr, grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn.Close()
+
+	client := pb.NewOrderClient(conn)
+
+	reqOrder := &pb.ProcessItemsRequest{
+		Customer: &pb.CustomerEntity{
+			CustomerId: 1,
+			Balance:    200.0,
+		},
+		OrderItems: []*pb.OrderItem{
+			{
+				ProductCode: "juice",
+				UnitPrice:   50.0,
+				Quantity:    1,
+			},
+			{
+				ProductCode: "bread",
+				UnitPrice:   50.0,
+				Quantity:    2,
+			},
+		},
+	}
+
+	resItem, errItem := client.ProcessItems(context.Background(), reqOrder)
+	o.NoError(errItem)
+	o.NotNil(resItem)
+	o.Equal(resItem.Message, "successfully process items")
+
+	resOrder, errOrder := client.GetOrder(context.Background(), &pb.GetOrderRequest{
+		CustomerId: 1,
+		Status:     "success",
+	})
+
+	o.NoError(errOrder)
+	o.NotNil(resOrder)
+	o.Equal(resOrder.GetOrder().OrderId, uint64(1))
+	log.Printf("res: %+v\n", resOrder)
+	log.Printf("items: %v", resOrder.Order.GetOrderItems())
+}
+
+func TestMain(t *testing.T) {
 	suite.Run(t, new(OrderTestSuite))
 }

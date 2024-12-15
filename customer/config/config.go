@@ -5,10 +5,19 @@ import (
 	"strconv"
 )
 
+func GetOrderServiceAddr() string {
+	var port string
+	if port = os.Getenv("ORDER_SERVICE_ADDR"); port == "" {
+		return "order:8082"
+	}
+
+	return port
+}
+
 func GetApplicationPort() int {
 	var port string
 	if port = os.Getenv("APPLICATION_PORT"); port == "" {
-		return 50053
+		return 8083
 	}
 
 	portInt, _ := strconv.Atoi(port)

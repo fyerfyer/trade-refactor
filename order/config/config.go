@@ -5,10 +5,19 @@ import (
 	"strconv"
 )
 
+func GetPaymentServiceAddr() string {
+	var port string
+	if port = os.Getenv("PAYMENT_SERVICE_ADDR"); port == "" {
+		return "payment:8081"
+	}
+
+	return port
+}
+
 func GetApplicationPort() int {
 	var port string
 	if port = os.Getenv("APPLICATION_PORT"); port == "" {
-		return 50052
+		return 8082
 	}
 
 	portInt, _ := strconv.Atoi(port)

@@ -23,7 +23,7 @@ func main() {
 	redisClient := redis.NewRedisClient(config.GetRedisAddr(), "", 10, 10, 3*time.Minute)
 	log.Println("successfully set up redis connection")
 
-	orderAdapter, err := order.NewOrderAdapter("localhost:50052")
+	orderAdapter, err := order.NewOrderAdapter(config.GetOrderServiceAddr())
 	log.Println("successfully dial to order grpc client...")
 
 	customerService := service.NewService(

@@ -6,6 +6,7 @@ import (
 	"net"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 
 	pb "github.com/fyerfyer/trade-dependency/proto/grpc/order"
 	"github.com/fyerfyer/trade-refactor/order/internal/port"
@@ -32,6 +33,7 @@ func (a *Adapter) Run() {
 
 	grpcServer := grpc.NewServer()
 	pb.RegisterOrderServer(grpcServer, a)
+	reflection.Register(grpcServer)
 	if err := grpcServer.Serve(listen); err != nil {
 		log.Fatalf("failed to serve grpc on port %d:%v", a.port, err)
 	}
