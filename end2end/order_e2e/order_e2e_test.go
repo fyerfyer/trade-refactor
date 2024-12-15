@@ -1,15 +1,16 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-	"github.com/testcontainers/testcontainers-go"
 	"google.golang.org/grpc"
 
 	pb "github.com/fyerfyer/trade-dependency/proto/grpc/order"
@@ -17,8 +18,6 @@ import (
 
 type OrderTestSuite struct {
 	suite.Suite
-	orderHost string
-	orderPort string
 }
 
 func runDockerCompose(args ...string) error {
@@ -29,38 +28,24 @@ func runDockerCompose(args ...string) error {
 	return cmd.Run()
 }
 
+func getContainerIP(containerName string) (string, error) {
+	cmd := exec.Command("docker", "inspect", "-f", "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}", containerName)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	if err := cmd.Run(); err != nil {
+		return "", err
+	}
+	ip := strings.TrimSpace(out.String())
+	if ip == "" {
+		return "", fmt.Errorf("could not find IP address for container %s", containerName)
+	}
+	return ip, nil
+}
+
 func (o *OrderTestSuite) SetupSuite() {
 	if err := runDockerCompose("up", "--build", "-d"); err != nil {
 		log.Fatalf("failed to run docker-compose up: %v", err)
 	}
-
-	containerRequest := testcontainers.ContainerRequest{
-		Name: "test_order",
-	}
-
-	container, err := testcontainers.GenericContainer(
-		context.Background(),
-		testcontainers.GenericContainerRequest{
-			ContainerRequest: containerRequest,
-			Started:          true,
-			Reuse:            true,
-		},
-	)
-	if err != nil {
-		log.Fatalf("failed to connect to existing container: %v", err)
-	}
-
-	host, err := container.Host(context.Background())
-	if err != nil {
-		log.Fatalf("failed to get container host: %v", err)
-	}
-	port, err := container.MappedPort(context.Background(), "8082")
-	if err != nil {
-		log.Fatalf("failed to get container port: %v", err)
-	}
-
-	o.orderHost = host
-	o.orderPort = port.Port()
 }
 
 func (o *OrderTestSuite) TearDownSuite() {
@@ -70,13 +55,15 @@ func (o *OrderTestSuite) TearDownSuite() {
 }
 
 func (o *OrderTestSuite) TestOrderService() {
-	connStr := fmt.Sprintf("%s:%s", o.orderHost, o.orderPort)
+	containerIP, err := getContainerIP("test_order")
+	o.Require().NoError(err, "failed to get container IP")
+
+	connStr := fmt.Sprintf("%s:8082", containerIP)
 	fmt.Printf("Connecting to: %s\n", connStr)
 
-	conn, err := grpc.Dial(connStr, grpc.WithInsecure())
-	if err != nil {
-		log.Fatalf("did not connect: %v", err)
-	}
+	// block the connect until success
+	conn, err := grpc.Dial(connStr, grpc.WithInsecure(), grpc.WithBlock())
+	o.Require().NoError(err, "did not connect")
 	defer conn.Close()
 
 	client := pb.NewOrderClient(conn)
@@ -101,18 +88,17 @@ func (o *OrderTestSuite) TestOrderService() {
 	}
 
 	resItem, errItem := client.ProcessItems(context.Background(), reqOrder)
-	o.NoError(errItem)
-	o.NotNil(resItem)
-	o.Equal(resItem.Message, "successfully process items")
+	o.Require().NoError(errItem)
+	o.Require().NotNil(resItem)
+	o.Equal("successfully process items", resItem.Message)
 
 	resOrder, errOrder := client.GetOrder(context.Background(), &pb.GetOrderRequest{
 		CustomerId: 1,
 		Status:     "success",
 	})
-
-	o.NoError(errOrder)
-	o.NotNil(resOrder)
-	o.Equal(resOrder.GetOrder().OrderId, uint64(1))
+	o.Require().NoError(errOrder)
+	o.Require().NotNil(resOrder)
+	o.Equal(uint64(1), resOrder.GetOrder().OrderId)
 	log.Printf("res: %+v\n", resOrder)
 	log.Printf("items: %v", resOrder.Order.GetOrderItems())
 }
