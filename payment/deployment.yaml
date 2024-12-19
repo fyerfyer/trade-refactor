@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment
+  labels:
+    app: payment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: payment
+  template:
+    metadata:
+      labels:
+        app: payment
+    spec:
+      containers:
+      - name: payment
+        image: fyerfyer/payment:v1.0.2
+        env:
+          - name: APPLICATION_PORT
+            value: "8081"
+          - name: REDIS_ADDR
+            value: "redis:6379"
+          - name: DATA_SOURCE_URL
+            value: "root:pa55word@tcp(mysql:3306)/payments"
